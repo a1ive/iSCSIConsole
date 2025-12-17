@@ -21,6 +21,24 @@ namespace ISCSIConsole
 {
     public partial class MainForm : Form
     {
+        private sealed class IPAddressItem
+        {
+            public IPAddressItem(string displayText, IPAddress address)
+            {
+                DisplayText = displayText;
+                Address = address;
+            }
+
+            public string DisplayText { get; private set; }
+
+            public IPAddress Address { get; private set; }
+
+            public override string ToString()
+            {
+                return DisplayText;
+            }
+        }
+
         private ISCSIServer m_server = new ISCSIServer();
         private List<ISCSITarget> m_targets = new List<ISCSITarget>();
         private UsageCounter m_usageCounter = new UsageCounter();
@@ -38,15 +56,13 @@ namespace ISCSIConsole
             m_server.OnLogEntry += Program.OnLogEntry;
 
             List<IPAddress> localIPs = GetHostIPAddresses();
-            KeyValuePairList<string, IPAddress> list = new KeyValuePairList<string, IPAddress>();
-            list.Add("Any", IPAddress.Any);
+            comboIPAddress.Items.Clear();
+            comboIPAddress.Items.Add(new IPAddressItem("Any", IPAddress.Any));
             foreach (IPAddress address in localIPs)
             {
-                list.Add(address.ToString(), address);
+                comboIPAddress.Items.Add(new IPAddressItem(address.ToString(), address));
             }
-            comboIPAddress.DataSource = list;
-            comboIPAddress.DisplayMember = "Key";
-            comboIPAddress.ValueMember = "Value";
+            comboIPAddress.SelectedIndex = 0;
             lblStatus.Text = "Author: Tal Aloni (tal.aloni.il@gmail.com)";
 
             if (RuntimeHelper.IsWin32 && !SecurityHelper.IsAdministrator())
@@ -59,7 +75,13 @@ namespace ISCSIConsole
         {
             if (!m_started)
             {
-                IPAddress serverAddress = (IPAddress)comboIPAddress.SelectedValue;
+                IPAddressItem selectedItem = comboIPAddress.SelectedItem as IPAddressItem;
+                if (selectedItem == null)
+                {
+                    MessageBox.Show("Invalid IP address selection", "Error");
+                    return;
+                }
+                IPAddress serverAddress = selectedItem.Address;
                 int port = Conversion.ToInt32(txtPort.Text, 0);
                 if (port <= 0 || port > UInt16.MaxValue)
                 {
