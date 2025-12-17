@@ -2,7 +2,8 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFrameworks>net20;net40;net472;netcoreapp3.1</TargetFrameworks>
+    <TargetFrameworks>net8.0-windows</TargetFrameworks>
+    <SupportedOSPlatformVersion>5.1</SupportedOSPlatformVersion>
     <AssemblyTitle>iSCSI Console</AssemblyTitle>
     <Product>iSCSI Console</Product>
     <Version>1.5.5</Version>
@@ -10,8 +11,22 @@
     <ApplicationIcon>Icons\SCSI.ico</ApplicationIcon>
     <Authors>Tal Aloni</Authors>
     <Copyright>Copyright © Tal Aloni 2012-2024</Copyright>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net8.0-windows' ">
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishAot>true</PublishAot>
+    <_SuppressWinFormsTrimError>true</_SuppressWinFormsTrimError>
+    <CustomResourceTypesSupport>true</CustomResourceTypesSupport>
   </PropertyGroup>
   
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net8.0-windows' ">
+    <PackageReference Include="System.Resources.Extensions" Version="8.0.0" />
+    <TrimmerRootAssembly Include="System.Resources.Extensions" />
+  </ItemGroup>
+
   <ItemGroup Condition=" '$(TargetFramework)' == 'net20' ">
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
@@ -23,6 +38,8 @@
 
   <ItemGroup>
     <PackageReference Include="DiskAccessLibrary.Win32" Version="1.6.3" />
+    <PackageReference Include="VC-LTL" Version="5.3.1" />
+    <PackageReference Include="YY-Thunks" Version="1.1.9" />
   </ItemGroup>
 
   <ItemGroup>
@@ -30,7 +47,7 @@
     <EmbeddedResource Update="Win32\SelectVolumeForm.resx" ManifestResourceName="ISCSIConsole.SelectVolumeForm" />
   </ItemGroup>
 
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(Configuration)' == 'Release' And '$(TargetFramework)' != 'netcoreapp3.1'">
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(Configuration)' == 'Release' And '$(TargetFramework)' != 'netcoreapp3.1' And '$(TargetFramework)' != 'net8.0-windows'">
       <Exec Command="&quot;$(ProjectDir)ILMerge\ILMerge.bat&quot; $(TargetFramework)" WorkingDirectory="$(ProjectDir)ILMerge" />
   </Target>
 
